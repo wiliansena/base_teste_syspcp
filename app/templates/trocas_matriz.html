@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Trocas de Matrizes</h2>
+<div class="d-flex align-items-center gap-2 mt-4">
+    <a href="{{ url_for('routes.listar_matrizes') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Voltar
+    </a>
+    <a href="{{ url_for('routes.nova_troca_matriz') }}" class="btn btn-success">
+        <i class="fas fa-plus"></i> Adicionar
+    </a>
+
+</div>
+<hr>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Data</th>
+            <th>Trocador</th>
+            <th>Máquina</th>
+            <th>Operador</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for troca in trocas %}
+        <tr>
+            <td>{{ troca.data.strftime('%d/%m/%Y') }}</td>
+            <td>{{ troca.trocador.nome }}</td>
+            <td>{{ troca.maquina.codigo }} - {{ troca.maquina.descricao }}</td>
+            <td>{{ troca.operador.nome }}</td>
+            <td>
+                <a href="{{ url_for('routes.ver_troca_matriz', id=troca.id) }}" class="btn btn-info btn-sm">
+                    <i class="bi bi-eye"></i> Ver</a>
+                <a href="{{ url_for('routes.editar_troca_matriz', id=troca.id) }}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-edit"></i> Editar</a>
+                <form action="{{ url_for('routes.excluir_troca_matriz', id=troca.id) }}" method="post" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza?')">
+                        <i class="fas fa-trash-alt"></i> Excluir</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

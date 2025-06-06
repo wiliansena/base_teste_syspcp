@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Detalhes da Margem</h2>
+
+    <a href="{{ url_for('routes.listar_margens') }}" class="btn btn-secondary">Voltar</a>
+    <hr>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>Data:</strong> {{ margem.data_criacao.strftime('%d/%m/%Y') }}</p>
+            <h4 class="card-title"><strong>Referência:</strong> {{ margem.referencia.codigo_referencia }} - {{ margem.referencia.descricao }}</h4>
+            <p><strong>Cliente:</strong> {{ margem.cliente }}</p>
+            <p><strong>Embalagem:</strong> {{ margem.embalagem_escolhida }}</p>
+            <p><strong>Preço de Venda:</strong> R$ {{ "%.2f"|format(margem.preco_venda) }}</p>
+			<p><strong>Dolar:</strong> $ {{ "%.2f"|format(margem.dolar) }}</p>
+			<p><strong>Preço de Venda Dolar($):</strong> $ {{ "%.2f"|format(margem.preco_venda_dolar) }}</p>
+
+            <!-- 🔹 Imagem da Referência -->
+            <div class="text-center">
+                <label><b>Imagem da Referência:</b></label><br>
+                {% if margem.referencia.imagem %}
+                    <img src="{{ url_for('static', filename='uploads/' + margem.referencia.imagem) }}" alt="Imagem da Referência" class="img-fluid img-thumbnail" style="max-width: 250px;">
+                {% else %}
+                    <p class="text-muted">Nenhuma imagem disponível</p>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            <!-- 🔹 Despesas de Venda -->
+            <h4 class="mt-4">Despesas de Venda</h4>
+            <table class="table table-sm table-bordered text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Descrição</th>
+                        <th>Porcentagem (%)</th>
+                        <th>Valor (R$)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Comissão</td> <td>{{ margem.comissao_porcentagem }}</td> <td>R$ {{ "%.2f"|format(margem.comissao_valor) }}</td></tr>
+                    <tr><td>Financeiro</td> <td>{{ margem.financeiro_porcentagem }}</td> <td>R$ {{ "%.2f"|format(margem.financeiro_valor) }}</td></tr>
+                    <tr><td>Duvidosos</td> <td>{{ margem.duvidosos_porcentagem }}</td> <td>R$ {{ "%.2f"|format(margem.duvidosos_valor) }}</td></tr>
+                    <tr><td>Frete</td> <td>{{ margem.frete_porcentagem }}</td> <td>R$ {{ "%.2f"|format(margem.frete_valor) }}</td></tr>
+                    <tr><td>Tributos</td> <td>{{ margem.tributos_porcentagem }}</td> <td>R$ {{ "%.2f"|format(margem.tributos_valor) }}</td></tr>
+                    <tr><td>Outros</td> <td>{{ margem.outros_porcentagem }}</td> <td>R$ {{ "%.2f"|format(margem.outros_valor) }}</td></tr>
+                    <tr class="table-warning">
+                        <td><strong>Totais</strong></td>
+                        <td><strong>R$ {{ "%.2f"|format(margem.total_despesas_porcentagem) }}</td></strong>
+                        <td>R$ <strong>{{ "%.2f"|format(margem.total_despesas_valor) }}</td></strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <hr>
+
+            <!-- 🔹 Custos e Margens -->
+            <h4 class="mt-4 text-center">Custo Total e Margens</h4>
+            <table class="table table-sm table-bordered text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Embalagem</th>
+                        <th>Custo</th>
+                        <th>Despesa de Venda</th>
+                        <th>Custo Total (R$)</th>
+                        <th>Lucro Unitário (R$)</th>
+                        <th>Margem (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>{{ margem.embalagem_escolhida }}</strong></td>
+                        <td>R$ {{ "%.2f"|format(margem.preco_embalagem_escolhida) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.despesas_venda) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.custo_total) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.lucro_unitario) }}</td>
+                        <td>{{ "%.2f"|format(margem.margem) }}%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <hr>
+
+            <!-- 🔹 Preços Sugeridos -->
+            <h4 class="mt-4 text-center">Preços Sugeridos e Lucros</h4>
+            <table class="table table-sm table-bordered text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Margem</th>
+                        <th>5%</th>
+                        <th>7%</th>
+                        <th>10%</th>
+                        <th>12%</th>
+                        <th>15%</th>
+                        <th>20%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Preço Sugerido</strong></td>
+                        <td>R$ {{ "%.2f"|format(margem.preco_sugerido_5) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.preco_sugerido_7) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.preco_sugerido_10) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.preco_sugerido_12) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.preco_sugerido_15) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.preco_sugerido_20) }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lucro Líquido</strong></td>
+                        <td>R$ {{ "%.2f"|format(margem.calcular_lucros_sugeridos()[5]) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.calcular_lucros_sugeridos()[7]) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.calcular_lucros_sugeridos()[10]) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.calcular_lucros_sugeridos()[12]) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.calcular_lucros_sugeridos()[15]) }}</td>
+                        <td>R$ {{ "%.2f"|format(margem.calcular_lucros_sugeridos()[20]) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="text-center mt-4">
+                <a href="{{ url_for('routes.listar_margens') }}" class="btn btn-secondary">Voltar</a>
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="fa fa-print"></i> Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

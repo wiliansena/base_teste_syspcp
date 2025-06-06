@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Troca de Matriz</h2>
+
+<div class="container">
+    <div class="row">
+        <!-- Primeira linha: Data e Máquina -->
+        <div class="col-md-6">
+            <p><strong>Data:</strong> {{ troca.data.strftime('%d/%m/%Y') }}</p>
+        </div>
+        <div class="col-md-6">
+            <p><strong>Máquina:</strong> {{ troca.maquina.codigo }} - {{ troca.maquina.descricao }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Segunda linha: Trocador e Operador -->
+        <div class="col-md-6">
+            <p><strong>Trocador:</strong> {{ troca.trocador.nome }}</p>
+        </div>
+        <div class="col-md-6">
+            <p><strong>Operador:</strong> {{ troca.operador.nome }}</p>
+        </div>
+    </div>
+
+    <div class="table-responsive mt-4">
+        <h4>Horários da Troca</h4>
+        <table class="table table-bordered table-hover shadow-sm text-center align-middle">
+            <thead class="table-primary">
+                <tr>
+                    <th>Horário</th>
+                    <th>Matriz</th>
+                    <th>Pares</th>
+                    <th>Capacidade</th>
+                    <th>Diferença</th>
+                    {% for i in range(1, 8) %}
+                    <th>{{ i }}ª Troca</th>
+                    <th>Total {{ i }}ª</th>
+                    {% endfor %}
+                    <th>Total Tempo</th>
+                    <th>Eficiência</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set horarios_padrao = [
+                "7h às 8h", "8h às 9h", "9h às 10h", "10h às 11h", "11h às 12h",
+                "12h às 13h", "13h às 14h", "14h às 15h", "15h às 16h", "16h às 17h"
+                ] %}
+
+                {% for horario_fixo in horarios_padrao %}
+                {% set horario = troca.horarios | selectattr("horario", "equalto", horario_fixo) | list | first %}
+
+                <tr>
+                    <td><strong>{{ horario_fixo }}</strong></td>
+                    <td>
+                        {% if horario and horario.matriz %}
+                        <span class="badge bg-info text-dark d-block mb-1">
+                            <i class="fas fa-cube me-1"></i> {{ horario.matriz.codigo }}
+                        </span>
+                        <small class="text-muted">{{ horario.matriz.descricao }}</small>
+                        {% else %}
+                        <span class="text-muted">--</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ horario.pares if horario else 0 }}</td>
+                    <td>{{ horario.producao_esperada if horario else 0 }}</td>
+                    <td>
+                        {% if horario %}
+                        <span class="{{ 'text-danger' if horario.diferenca < 0 else 'text-success' }}">
+                            {{ horario.diferenca }}
+                        </span>
+                        {% else %}
+                        0
+                        {% endif %}
+                    </td>
+
+                    {% for i in range(1, 8) %}
+                    <td>
+                        <div>
+                            {% set ini = getattr(horario, "inicio_" ~ i) if horario else None %}
+                            {% set fim = getattr(horario, "fim_" ~ i) if horario else None %}
+                            {{ ini.strftime('%H:%M') if ini and ini.strftime('%H:%M') != '00:00' else '--' }}
+                            -
+                            {{ fim.strftime('%H:%M') if fim and fim.strftime('%H:%M') != '00:00' else '--' }}
+                        </div>
+                        <div>
+                            {% set motivo = getattr(horario, "motivo_" ~ i) if horario else '' %}
+                            {% if motivo %}
+                            <span class="badge bg-warning text-dark mt-1">{{ motivo }}</span>
+                            {% else %}
+                            <span class="text-muted">--</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <strong>
+                            {% set duracao = getattr(horario, "duracao_" ~ i) if horario else 0 %}
+                            {{ "--" if duracao == 0 else "%02d:%02d" | format(duracao // 60, duracao % 60) }}
+                        </strong>
+                    </td>
+                    {% endfor %}
+
+                    <td>
+                        <strong>
+                            {% if horario and horario.tempo_total_troca > 0 %}
+                            {{ "%02d:%02d" | format(horario.tempo_total_troca // 60, horario.tempo_total_troca % 60) }}
+                            {% else %}
+                            --
+                            {% endif %}
+                        </strong>
+                    </td>
+                    <td>
+                        {% if horario %}
+                        <span class="text-success">{{ "%.2f"|format(horario.eficiencia_por_tempo()) }}</span>
+                        <small>pares/min</small>
+                        {% else %}
+                        0.00 <small>pares/min</small>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="alert alert-info mt-4 p-3 shadow-sm rounded">
+        <h5 class="mb-3"><i class="fas fa-bolt text-primary"></i> Eficiência Geral</h5>
+
+        <p class="mb-1">
+            <strong><i class="fas fa-play-circle"></i> Tempo Produtivo Real:</strong>
+            {{ "%02d:%02d" | format(troca.calcular_tempo_produtivo_real() // 60, troca.calcular_tempo_produtivo_real() %
+            60) }}
+        </p>
+
+
+        <p class="mb-1">
+            <strong><i class="fas fa-clock"></i> Tempo Parado (trocas) :</strong>
+            {{ "%02d:%02d" | format(troca.tempo_total_geral // 60, troca.tempo_total_geral % 60) }}
+        </p>
+
+        <p class="mb-1">
+            <strong><i class="fas fa-boxes"></i> Total Pares Produzidos:</strong>
+            {{ troca.total_pares_produzidos }}
+        </p>
+
+        <p class="mb-1">
+            <strong><i class="fas fa-clipboard-check"></i> Produção Esperada Total:</strong>
+            {{ troca.calcular_total_esperado() }}
+        </p>
+
+        <p class="mb-1">
+            {% set diferenca_total = troca.total_pares_produzidos - troca.calcular_total_esperado() %}
+            <strong><i class="fas fa-balance-scale"></i> Diferença Total:</strong>
+            <span class="{{ 'text-danger' if diferenca_total < 0 else 'text-success' }}">{{ diferenca_total }}</span>
+        </p>
+
+        <p class="mb-1">
+            <strong><i class="fas fa-stopwatch"></i>Total Pares Produzidos /min:</strong>
+            <span class="text-success">{{ '%.2f'|format(troca.calcular_eficiencia_geral()) }}</span> pares/min
+        </p>
+
+        <p class="mb-1">
+            <strong><i class="fas fa-hourglass-half"></i>Total Pares Produzidos /Hora:</strong>
+            <span class="text-success">{{ '%.2f'|format(troca.calcular_eficiencia_geral() * 60) }}</span> pares/hora
+        </p>
+
+        <p class="text-muted mb-0">
+            <small><i class="far fa-clock"></i> Base: Tempo produtivo real = (Período - {{ troca.tempo_total_geral }} min de trocas )</small>
+        </p>
+    </div>
+
+
+    <a href="{{ url_for('routes.listar_trocas_matriz') }}" class="btn btn-secondary">Voltar</a>
+    <button class="btn btn-primary" onclick="window.print()">
+        <i class="fa fa-print"></i> Imprimir
+    </button>
+    <a href="{{ url_for('routes.exportar_troca_excel', id=troca.id) }}" class="btn btn-success">
+        <i class="fas fa-file-excel"></i> Exportar (Excel)
+    </a>
+</div>
+{% endblock %}

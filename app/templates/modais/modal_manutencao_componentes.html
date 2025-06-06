@@ -1,0 +1,64 @@
+<!-- Modal de Seleção de Componentes -->
+<div class="modal fade" id="modalComponentes" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Selecionar Componente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <!-- Campo de Pesquisa -->
+            <div class="row mb-3">
+                <div class="mb-3">
+                    <input type="text" id="filtroTabelaComponentes" class="form-control"
+                        placeholder="Buscar por código...">
+                </div>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descrição</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in componentes %}
+                        <tr>
+                            <td>{{ c.codigo }}</td>
+                            <td>{{ c.descricao }}</td>
+                            <td>
+                                <button type="button" class="btn btn-primary btn-sm selecionar-componente"
+                                    data-id="{{ c.id }}" data-codigo="{{ c.codigo }}"
+                                    data-descricao="{{ c.descricao }}">
+                                    Selecionar
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<!--SCRIPT DE BUSCA PELO NOME DA TABELA-->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const filtro = document.getElementById("filtroTabelaComponentes");
+        const linhas = document.querySelectorAll("table tbody tr");
+
+        if (filtro) {
+            filtro.addEventListener("keyup", function () {
+                const texto = this.value.toLowerCase();
+
+                linhas.forEach(row => {
+                    const visivel = Array.from(row.children).some(td =>
+                        td.textContent.toLowerCase().includes(texto)
+                    );
+                    row.style.display = visivel ? '' : 'none';
+                });
+            });
+        }
+    });
+</script>

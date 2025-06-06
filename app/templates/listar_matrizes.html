@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <a href="{{ url_for('routes.listar_movimentacoes_matriz') }}" class="text-decoration-none">
+            <div class="card text-dark bg-warning h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-cube fa-2x mb-2"></i>
+                    <h6 class="card-title">Movimentação de Matrizes</h6>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="{{ url_for('routes.listar_trocas_matriz') }}" class="text-decoration-none">
+            <div class="card text-white bg-secondary h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-exchange-alt fa-2x mb-2"></i>
+                    <h6 class="card-title">Troca de Matriz</h6>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="{{ url_for('routes.relatorio_matriz_tempo_real') }}" class="text-decoration-none">
+            <div class="card text-white bg-info h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fa-solid fa-clock fa-2x mb-2"></i>
+                    <h6 class="card-title">Relatório Tempo Real</h6>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="{{ url_for('routes.relatorio_estoque_matriz') }}" class="text-decoration-none">
+            <div class="card text-white bg-primary h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fa-solid fa-clipboard-list fa-2x mb-2"></i>
+                    <h6 class="card-title">Relatório Estoque de Matriz</h6>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+
+<a href="{{ url_for('routes.nova_matriz') }}" class="btn btn-success mb-3">
+    <i class="fas fa-plus"></i> Nova Matriz
+</a>
+<hr>
+<!-- Campo de Pesquisa -->
+<div class="row mb-3">
+    <div class="col-md-4">
+        <input type="text" id="filtroTabelaMatrizes" class="form-control" placeholder="Buscar Matriz...">
+    </div>
+</div>
+<h2>Matrizes Cadastradas</h2>
+
+
+
+<table class="table table-bordered table-striped">
+    <thead class="table-primary">
+        <tr>
+            <th>Código</th>
+            <th>Descrição</th>
+            <th>Linha</th>
+            <th>Imagem</th>
+            <th>Tipo</th>
+            <th>QTDE</th>
+            <th>Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for matriz in matrizes %}
+        <tr>
+            <td>{{ matriz.codigo }}</td>
+            <td>{{ matriz.descricao }}</td>
+            <td>{{ matriz.linha.nome }}</td>
+            <td>
+                {% if matriz.imagem %}
+                <img src="{{ url_for('static', filename='uploads/' + matriz.imagem) }}" width="80">
+                {% else %}
+                Sem imagem
+                {% endif %}
+            </td>
+            <td>{{ matriz.tipo }}</td>
+            <td class="{% if matriz.quantidade < 100 %}text-danger fw-bold{% else %}text-success fw-bold{% endif %}">
+                {{ matriz.quantidade }}
+            </td>
+            <td>
+                <a href="{{ url_for('routes.ver_matriz', id=matriz.id) }}" class="btn btn-info btn-sm"><i
+                        class="bi bi-eye"></i>Ver</a>
+                <a href="{{ url_for('routes.editar_matriz', id=matriz.id) }}" class="btn btn-editar btn-sm"><i
+                        class="fas fa-edit"></i>Editar</a>
+                <!-- Botão que abre o Modal -->
+                <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                    data-bs-target="#confirmarExcluirModal{{ matriz.id }}">
+                    <i class="fas fa-trash"></i> Excluir
+                </button>
+
+                <!-- Modal de Confirmação -->
+                <div class="modal fade" id="confirmarExcluirModal{{ matriz.id }}" tabindex="-1"
+                    aria-labelledby="modalLabel{{ matriz.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ url_for('routes.excluir_matriz', id=matriz.id) }}"
+                                onsubmit="return validarExcluir(this);">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalLabel{{ matriz.id }}">Confirmar Exclusão</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Fechar"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="text-danger fw-bold">
+                                        Esta ação irá excluir a matriz <strong>{{ matriz.codigo }}</strong> do sistema.
+                                    </p>
+                                    <p>Para confirmar, digite <strong>excluir</strong> no campo abaixo:</p>
+                                    <input type="text" class="form-control" placeholder="Digite 'excluir'" required>
+                                    <input type="hidden" name="confirmacao">
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-danger">Confirmar Exclusão</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const filtro = document.getElementById("filtroTabelaMatrizes");
+        const linhas = document.querySelectorAll("table tbody tr");
+
+        if (filtro) {
+            filtro.addEventListener("keyup", function () {
+                const texto = this.value.toLowerCase();
+
+                linhas.forEach(row => {
+                    const visivel = Array.from(row.children).some(td =>
+                        td.textContent.toLowerCase().includes(texto)
+                    );
+                    row.style.display = visivel ? '' : 'none';
+                });
+            });
+        }
+    });
+</script>
+
+<script>
+    function validarExcluir(formulario) {
+        const inputConfirmar = formulario.querySelector('input[type="text"]');
+        const valor = inputConfirmar.value.trim().toLowerCase();
+        if (valor === 'excluir') {
+            formulario.querySelector('input[type="hidden"]').value = 'excluir';
+            return true;
+        } else {
+            alert("Digite corretamente 'excluir' para confirmar.");
+            return false;
+        }
+    }
+</script>
+
+{% endblock %}

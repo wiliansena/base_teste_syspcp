@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <title>sysPCP</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Ícone da aba -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/paginas3.css') }}">
+
+    <!-- Favicon padrão -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+
+
+    <!-- Ícones para Android e PWA -->
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='images/icon-192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='images/icon-512.png') }}">
+
+    <!-- Ícone para iOS -->
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+
+    <!-- Manifesto opcional (se quiser transformar em app tipo PWA) -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0d6efd">
+
+    <!-- HEAD: CSS do Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+
+</head>
+<!-- Antes de </body>: JS do Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+<body>
+
+    <!-- Botão de alternância da sidebar -->
+    <button id="toggleSidebar" class="toggle-sidebar-btn no-print" title="Abrir/Fechar Menu">
+        <i id="toggleIcon" class="fa-solid fa-angles-left"></i>
+    </button>
+
+    <!-- Barra superior -->
+    <div class="top-bar">
+        <span class="system-title">SISTEMA DE PLANEJAMENTO E CUSTOS</span>
+        <span class="user-info">Olá, {{ current_user.nome }}!</span>
+    </div>
+
+    <!-- Menu lateral (visível apenas para usuários autenticados) -->
+    {% if current_user.is_authenticated %}
+    <nav class="sidebar">
+        <div class="text-center">
+            <h4>sysPCP</h4>
+        </div>
+
+        <a href="{{ url_for('routes.home') }}"><i class="fas fa-home"></i> Página Inicial</a>
+        <hr>
+
+        <!-- Cadastros -->
+        {% if ('cadastro', 'ver') in g.permissoes %}
+        <div class="sidebar-category" onclick="toggleMenu('cadastro')">
+            <i class="fa-solid fa-address-card"></i> Cadastros
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-submenu" id="cadastro">
+            <a href="{{ url_for('routes.listar_estados') }}"><i class="fa-solid fa-map-location-dot"></i> Estados </a>
+            <a href="{{ url_for('routes.listar_municipios') }}"><i class="fa-solid fa-location-dot"></i> Municipios </a>
+            <a href="{{ url_for('routes.listar_ceps') }}"><i class="fa-solid fa-location-dot"></i> CEPs </a>
+        </div>
+        {% endif %}
+
+        <!-- Planejamento de Custos -->
+        {% if ('margens', 'ver') in g.permissoes %}
+        <div class="sidebar-category" onclick="toggleMenu('margens')">
+            <i class="fas fa-chart-line"></i> Margens e Análises
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-submenu" id="margens">
+            <a href="{{ url_for('routes.custo_remessa') }}"><i class="bi bi-box-seam"></i> Margens por Remessa</a>
+            <a href="{{ url_for('routes.listar_margens_pedido') }}"><i class="fa-solid fa-receipt"></i> Margens por
+                Pedido</a>
+            <a href="{{ url_for('routes.listar_margens') }}"><i class="fas fa-percent"></i> Margens por Referência</a>
+        </div>
+        {% endif %}
+
+        <!-- Produção -->
+        {% if ('custoproducao', 'ver') in g.permissoes %}
+        <div class="sidebar-category" onclick="toggleMenu('custoproducao')">
+            <i class="fas fa-industry"></i> Custos de Produção
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-submenu" id="custoproducao">
+            <a href="{{ url_for('routes.listar_referencias') }}"><i class="fas fa-box"></i> Referências</a>
+            <a href="{{ url_for('routes.listar_solados') }}"><i class="fas fa-shoe-prints"></i> Solados</a>
+            <a href="{{ url_for('routes.listar_alcas') }}"><i class="fas fa-grip-lines"></i> Alças</a>
+            <a href="{{ url_for('routes.listar_custos') }}"><i class="fas fa-dollar-sign"></i> Custos Operacionais</a>
+            <a href="{{ url_for('routes.listar_mao_de_obra') }}"><i class="fas fa-user"></i> Mão de Obra</a>
+            <a href="{{ url_for('routes.listar_salarios') }}"><i class="fas fa-money-bill"></i> Salários</a>
+        </div>
+        {% endif %}
+
+        <!-- Componentes e Materiais -->
+        {% if ('componentes', 'ver') in g.permissoes %}
+        <div class="sidebar-category" onclick="toggleMenu('componentes')">
+            <i class="fa-solid fa-cubes"></i> Componentes e Materiais
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-submenu" id="componentes">
+            <a href="{{ url_for('routes.listar_componentes') }}"><i class="fa-solid fa-cubes"></i> Componentes</a>
+        </div>
+        {% endif %}
+
+
+        <!-- Controle de Produção -->
+        {% if ('controleproducao', 'ver') in g.permissoes %}
+        <div class="sidebar-category" onclick="toggleMenu('controleproducao')">
+            <i class="bi bi-clipboard-check"></i> Controle de Produção
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-submenu" id="controleproducao">
+
+            <a href="{{ url_for('routes.listar_maquinas') }}"><i class="fa-solid fa-gears"></i> Máquinas</a>
+            <a href="{{ url_for('routes.listar_matrizes') }}"><i class="fas fa-cube"></i> Matrizes</a>
+            <a href="{{ url_for('routes.listar_remessas') }}"><i class="fa-solid fa-clipboard-list"></i> Remessas</a>
+            <a href="{{ url_for('routes.listar_planejamentos') }}">
+                <i class="fa-solid fa-sitemap"></i> Planejamento de Produção</a>
+            <a href="{{ url_for('routes.listar_prodfat') }}">
+                <i class="fas fa-filter"></i> Produção x Faturamento
+            </a>
+
+
+        </div>
+        {% endif %}
+
+        <!-- DESENVOLVIMENTO -->
+        {% if ('desenvolvimento', 'ver') in g.permissoes %}
+        <div class="sidebar-category" onclick="toggleMenu('desenvolvimento')">
+            <i class="fa-solid fa-lightbulb"></i> Desenvolvimento
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-submenu" id="desenvolvimento">
+            <a href="{{ url_for('routes.listar_cores') }}"><i class="fa-solid fa-palette"></i>Cores</a>
+            <a href="{{ url_for('routes.listar_linhas') }}"><i class="fa-solid fa-layer-group"></i>Linhas</a>
+            <a href="{{ url_for('routes.listar_colecoes') }}"><i class="bi bi-tags"></i> Coleções</a>
+            <a href="{{ url_for('routes.listar_grades') }}"><i class="fa-solid fa-ruler-horizontal"></i>
+                Grades</a>
+        </div>
+
+        {% endif %}
+
+        <!-- Manutenção -->
+        {% if ('manutencao', 'ver') in g.permissoes %}
+        <div class="sidebar-category" onclick="toggleMenu('manutencao')">
+            <i class="fa-solid fa-screwdriver-wrench"></i> Manutenção
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-submenu" id="manutencao">
+            <a href="{{ url_for('routes.listar_manutencoes') }}"><i class="fa-solid fa-screwdriver-wrench"></i>
+                Manutenções</a>
+            <a href="{{ url_for('routes.relatorio_manutencoes') }}"><i class="fa-solid fa-clipboard-list"></i>Relatório
+                de Manutenções</a>
+            <a href="{{ url_for('routes.relatorio_componentes_manutencao') }}"><i
+                    class="fa-solid fa-clipboard-list"></i>Componentes por Manutenção</a>
+        </div>
+
+        {% endif %}
+
+                <!-- Administrativo -->
+        {% if ('administrativo', 'ver') in g.permissoes %}
+        <div class="sidebar-category" onclick="toggleMenu('administrativo')">
+            <i class="fa-solid fa-building"></i> Administrativo
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-submenu" id="administrativo">
+            <a href="{{ url_for('routes.listar_ordemCompras') }}"><i class="fa-solid fa-file-invoice-dollar"></i>
+                Ordem de Compras</a>
+            <a href="{{ url_for('routes.listar_ordemComprasKanban') }}"><i class="fa-solid fa-table-columns"></i>
+                Ordem de Compras Kanban</a>
+        </div>
+        {% endif %}
+
+        <!-- Funcionários -->
+        {% if ('funcionario', 'ver') in g.permissoes %}
+        <div class="sidebar-category" onclick="toggleMenu('funcionario')">
+            <i class="bi bi-people"></i> Funcionários
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-submenu" id="funcionario">
+            <a href="{{ url_for('routes.listar_funcionarios') }}"><i class="bi bi-people"></i> Pessoas e Funções</a>
+        </div>
+        {% endif %}
+
+        <!-- 🔹 Administração (sempre visível) -->
+        <div class="sidebar-category" onclick="toggleMenu('administracao')">
+            <i class="fas fa-user-cog"></i> Administração
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="sidebar-submenu" id="administracao">
+            {% if ('usuarios', 'ver') in g.permissoes %}
+            <a href="{{ url_for('routes.listar_usuarios') }}"><i class="fas fa-users"></i> Usuários</a>
+            <a href="{{ url_for('routes.listar_logs') }}"><i class="bi bi-clock-history"></i> Logs</a>
+            {% endif %}
+            {% if ('trocar_senha', 'editar') in g.permissoes %}
+            <a href="{{ url_for('auth.trocar_senha') }}"><i class="fas fa-key"></i> Trocar Senha</a>
+            {% endif %}
+        </div>
+
+
+
+        <!-- Botão de logout -->
+        <a href="{{ url_for('auth.logout') }}" class="text-danger"><i class="bi bi-box-arrow-right"></i> Sair</a>
+    </nav>
+    {% endif %}
+
+    <!-- Conteúdo principal -->
+    <div class="content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JS Personalizado -->
+    <script src="{{ url_for('static', filename='js/formatacao_numeros.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/zoom.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/marcar_botoes_selecionados.js') }}"></script>
+
+    <!--SCRIPT PARA ALTERAR A DIREÇÃO DO BOTÃO DE ESCONDER E APARECER O MENU LATERAL-->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleBtn = document.getElementById("toggleSidebar");
+            const toggleIcon = document.getElementById("toggleIcon");
+
+            toggleBtn.addEventListener("click", function () {
+                document.body.classList.toggle("hide-sidebar");
+
+                // Alternar ícone entre <<< e >>> usando angles
+                if (document.body.classList.contains("hide-sidebar")) {
+                    toggleIcon.classList.remove("fa-angles-left");
+                    toggleIcon.classList.add("fa-angles-right");
+                } else {
+                    toggleIcon.classList.remove("fa-angles-right");
+                    toggleIcon.classList.add("fa-angles-left");
+                }
+            });
+        });
+    </script>
+
+
+    <script>
+        window.addEventListener("resize", function () {
+            document.querySelectorAll(".table-responsive").forEach(function (el) {
+                el.scrollLeft = 0;
+            });
+        });
+
+        /* 🔹 Passar automaticamente para o próximo campo ao digitar */
+        document.addEventListener("DOMContentLoaded", function () {
+            let inputs = document.querySelectorAll("input, select, textarea");
+
+            inputs.forEach((input, index) => {
+                input.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        let nextInput = inputs[index + 1];
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Remove qualquer estado salvo no localStorage para garantir que as categorias sempre iniciem fechadas ao recarregar a página
+            localStorage.removeItem("categoriasAbertas");
+
+            // Função para alternar os menus
+            function toggleMenu(id) {
+                let submenu = document.getElementById(id);
+                let category = submenu.previousElementSibling;
+
+                if (submenu.style.display === "block") {
+                    submenu.style.display = "none";
+                    category.classList.remove("active");
+                } else {
+                    submenu.style.display = "block";
+                    category.classList.add("active");
+                }
+            }
+
+            // Adiciona os eventos de clique nos botões de categoria
+            document.querySelectorAll(".sidebar-category").forEach(category => {
+                category.addEventListener("click", function () {
+                    let id = this.nextElementSibling.id;
+                    toggleMenu(id);
+                });
+            });
+
+            // Mantém os menus abertos quando clicar em um link interno
+            document.querySelectorAll(".sidebar-submenu a").forEach(link => {
+                link.addEventListener("click", function (event) {
+                    event.stopPropagation(); // Impede que o clique no link feche o menu
+                });
+            });
+        });
+
+    </script>
+
+    <!-- Ativa o select2
+     
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        $('.select2').select2({
+            width: '100%',
+            placeholder: 'Selecione',
+            allowClear: true
+        });
+    });
+</script>
+    -->
+
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Lista de Margens por Pedido</h2>
+    <hr>
+
+    <div>
+    <a href="{{ url_for('routes.nova_margem_pedido') }}" class="btn btn-success">Adicionar</a>
+    </div>
+    <hr>
+    <!-- 🔎 Campo de busca -->
+    <div class="row mb-3">
+        <div class="col-md-4"> <!-- Define um tamanho menor para o campo -->
+            <form method="GET" action="{{ url_for('routes.listar_margens_pedido') }}" class="d-flex gap-2">
+                <input type="text" name="filtro" class="form-control form-control-sm" placeholder="Buscar pedido"
+                    value="{{ request.args.get('filtro', '') }}">
+                <button type="submit" class="btn btn-primary btn-sm ms-2">Buscar</button>
+                <a href="{{ url_for('routes.listar_margens_pedido') }}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-sync-alt"></i> <!-- Ícone de atualização -->
+                </a>
+            </form>
+        </div>
+    </div>  
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Pedido</th>
+                <th>Remessa</th>
+                <th>Nota<br>Fiscal</th>
+                <th>Cliente</th>
+                <th>Total<br>Custo</th>
+                <th>Total<br>Preço Venda</th>
+                <th>Lucro<br>Total</th>
+                <th>Margem<br>Média (%)</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for margem in margens %}
+            <tr>
+                <td>{{ margem.id }}</td>
+                <td>{{ margem.pedido }}</td>
+                <td>{{ margem.remessa }}</td>
+                <td>{{ margem.nota_fiscal }}</td>
+                <td>{{ margem.cliente }}</td>
+                <td>R$ {{ margem.total_custo }}</td>
+                <td>R$ {{ margem.total_preco_venda }}</td>
+                <td>R$ {{ margem.lucro_total }}</td>
+                <td>{{ margem.margem_media }}%</td>
+                <td>
+                    <a href="{{ url_for('routes.ver_margem_pedido', id=margem.id) }}"
+                        class="btn btn-info btn-sm"><i class="bi bi-eye"></i> Ver</a>
+                    <a href="{{ url_for('routes.editar_margem_pedido', id=margem.id) }}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <form action="{{ url_for('routes.excluir_margem_pedido', id=margem.id) }}" method="POST"
+                        onsubmit="return confirm('Tem certeza que deseja excluir esta margem por pedido?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt"></i> Excluir</button>
+                    </form>
+
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" class="text-center">Nenhuma margem cadastrada.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

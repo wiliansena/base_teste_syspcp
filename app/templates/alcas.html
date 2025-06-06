@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>ALÇAS</h2>
+    <br>
+    <a href="{{ url_for('routes.nova_alca') }}" class="btn btn-success mb-3"><i class="fas fa-plus"></i> Adicionar</a>
+    <br>
+    <hr>
+    <h5>Buscar referência</h5>
+
+    <!-- 🔎 Campo de busca -->
+    <div class="row mb-3">
+        <div class="col-md-4"> <!-- Define um tamanho menor para o campo -->
+            <form method="GET" action="{{ url_for('routes.listar_alcas') }}" class="d-flex gap-2">
+                <input type="text" name="filtro" class="form-control form-control-sm"
+                    placeholder="Buscar por referência" value="{{ request.args.get('filtro', '') }}">
+                <button type="submit" class="btn btn-primary btn-sm ms-2">Buscar</button>
+                <a href="{{ url_for('routes.listar_alcas') }}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-sync-alt"></i> <!-- Ícone de atualização -->
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <a href="{{ url_for('routes.exportar_alcas_excel') }}" class="btn btn-outline-success mb-3 ms-2">
+        <i class="fas fa-file-excel"></i> Exportar Excel
+    </a>
+
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Referência</th>
+                <th>Descrição</th>
+                <th>Imagem</th>
+                <th>Custo Total</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alca in alcas %}
+            <tr>
+                <td>{{ alca.referencia }}</td>
+                <td>{{ alca.descricao }}</td>
+                <td>
+                    {% if alca.imagem %}
+                    <img src="{{ url_for('static', filename='uploads/' + alca.imagem) }}" width="100">
+                    {% else %}
+                    Sem imagem
+                    {% endif %}
+                </td>
+                <td>R$ {{ "%.2f"|format(alca.preco_total) }}</td>
+                <td>
+                    <a href="{{ url_for('routes.ver_alca', id=alca.id) }}" class="btn btn-info btn-sm">
+                        <i class="bi bi-eye"></i> Ver</a>
+                    <a href="{{ url_for('routes.editar_alca', id=alca.id) }}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i> Editar</a>
+                    <a href="{{ url_for('routes.copiar_alca', id=alca.id) }}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-copy"></i> Copiar</a>
+                    <form action="{{ url_for('routes.excluir_alca', id=alca.id) }}" method="POST"
+                        style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                            onclick="return confirm('Tem certeza que deseja excluir esta alça?')">
+                            <i class="fas fa-trash-alt"></i> Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if alcas.pages > 1 %}
+    <nav aria-label="Navegação de páginas">
+        <ul class="pagination justify-content-center">
+
+            {% if alcas.has_prev %}
+            <li class="page-item">
+                <a class="page-link"
+                    href="{{ url_for('routes.listar_alcas', page=alcas.prev_num, filtro=request.args.get('filtro', '')) }}">
+                    Anterior
+                </a>
+            </li>
+            {% endif %}
+
+            {# Variáveis de controle #}
+            {% set total_pages = alcas.pages %}
+            {% set current_page = alcas.page %}
+            {% set max_visible = alcas.per_page %}
+            {% set half = max_visible // 2 %}
+
+            {% set start = current_page - half %}
+            {% if start < 1 %} {% set start=1 %} {% endif %} {% set end=start + max_visible - 1 %} {% if end>
+                total_pages %}
+                {% set end = total_pages %}
+                {% set start = end - max_visible + 1 %}
+                {% if start < 1 %} {% set start=1 %} {% endif %} {% endif %} {% if start> 1 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+
+                    {% for pagina in range(start, end + 1) %}
+                    <li class="page-item {% if pagina == current_page %}active{% endif %}">
+                        <a class="page-link"
+                            href="{{ url_for('routes.listar_alcas', page=pagina, filtro=request.args.get('filtro', '')) }}">
+                            {{ pagina }}
+                        </a>
+                    </li>
+                    {% endfor %}
+
+                    {% if end < total_pages %} <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+
+                        {% if alcas.has_next %}
+                        <li class="page-item">
+                            <a class="page-link"
+                                href="{{ url_for('routes.listar_alcas', page=alcas.next_num, filtro=request.args.get('filtro', '')) }}">
+                                Próxima
+                            </a>
+                        </li>
+                        {% endif %}
+
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
